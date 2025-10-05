@@ -22,4 +22,4 @@ const Board = ({handleClick, boardSize=3, board=[[]]}) => {
   )
 }
 
-export default Board
+export default Board;

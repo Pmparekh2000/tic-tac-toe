@@ -5,7 +5,7 @@ import TicTacToe from './components/TicTacToe';
 function App() {
   return (
     <div className="App">
-      <TicTacToe boardSize={5}/>
+      <TicTacToe boardSize={3}/>
     </div>
   );
 }

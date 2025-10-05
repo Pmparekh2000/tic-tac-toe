@@ -1,30 +1,36 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Board from './Board';
+import { checkWinner, resetGame } from '../utils/ticTacToeUtils';
 
 const TicTacToe = ({boardSize=3}) => {
-  const [board, setBoard] = useState(Array.from({length: boardSize}, (_, index) => {
-    return new Array(boardSize).fill(null);
-  }));
-  const [turnX, setTurnX] = useState(true);
+  const [board, setBoard] = useState(() => resetGame(boardSize));
+  const [turnX, setTurnX] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [status, setStatus] = useState("Player O turn");
+  const [movesPlayed, setMovesPlayed] = useState(0);
 
-  const status = turnX ? "Player X turn" : "Player O turn";
+  useEffect(() => {
+    const winner = checkWinner(board, boardSize);
+    if (winner) {
+        setStatus(winner === 'X' ? "Player X has won" : "Player O has won");
+        setGameOver(true);
+    } else {
+        if (movesPlayed === boardSize*boardSize) {
+            setStatus("Game drawn");
+            setGameOver(true);
+        } else {
+            setStatus(turnX ? "Player O turn" : "Player X turn");
+            setTurnX(!turnX);
+        }
+    }
+  }, [board, movesPlayed]);
 
   const handleClick = (rowIndex, colIndex) => {
-    console.log("Called handle click", rowIndex, colIndex);
-
-    if (board[rowIndex][colIndex]) {
+    if (board[rowIndex][colIndex] || gameOver) {
         return;
     }
-    // A1: Does not create a new reference and hence does not cause a re-render
-    // setBoard((prevBoard) => {
-    //     prevBoard[rowIndex][colIndex] = 'X';
-    //     return prevBoard;
-    // });
-    // A2: Does not handle functions
-    // const deepCopy = JSON.parse(JSON.stringify(board));
-    // deepCopy[rowIndex][colIndex] = turnX ? 'X' : 'O';
-    // setBoard(deepCopy);
-    // A3: Best suited since also handles functions, undefined and complex objects. Check Gemini
+    setMovesPlayed((prevValue) => prevValue + 1);
+    // Explicitly creating copies at each level of array for React to re-render
     setBoard((prevBoard) => {
         const newBoard = [...prevBoard];
         const newRow = [...newBoard[rowIndex]];
@@ -32,8 +38,6 @@ const TicTacToe = ({boardSize=3}) => {
         newBoard[rowIndex] = newRow;
         return newBoard;
     });
-
-    setTurnX(!turnX);
   };
   
   return (
@@ -42,7 +46,7 @@ const TicTacToe = ({boardSize=3}) => {
             <Board handleClick={handleClick} boardSize={boardSize} board={board}/>
         </div>
         <div className="status">{status}</div>
-        <button className="reset-button">Reset Game</button>
+        <button className="reset-button" onClick={() => setBoard(resetGame(boardSize))}>Reset Game</button>
     </div>
   )
 }
